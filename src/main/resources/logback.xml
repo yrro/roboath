@@ -1,0 +1,16 @@
+<configuration>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <appender name="stderr" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%level %msg [%mdc]%n%rEx</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${logLevel:-INFO}">
+        <appender-ref ref="stderr"/>
+    </root>
+</configuration>
