@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import roboath.service.Service;
 
+import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 
@@ -30,6 +30,8 @@ public class Protocol implements Runnable {
     @Override
     public void run() {
         MDC.put("client", String.valueOf(socket.getRemoteSocketAddress()));
+        MDC.put("tlsProtocol", ((SSLSocket)socket).getSession().getProtocol());
+        MDC.put("tlsCipher", ((SSLSocket)socket).getSession().getCipherSuite());
         log.debug("accepting connection");
         try (
             ProtocolReader in = new ProtocolReader(socket.getInputStream());
@@ -45,6 +47,8 @@ public class Protocol implements Runnable {
         } finally {
             log.debug("connection closed; with successes={}, failures={}, errors={}", successCount, failureCount, errorCount);
             MDC.remove("client");
+            MDC.remove("tlsProtocol");
+            MDC.remove("tlsCipher");
         }
     }
 

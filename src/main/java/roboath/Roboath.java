@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ServiceManager;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +18,13 @@ public class Roboath {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
+        Config config = Config.builder()
+            .privateKey(Paths.get("key-classic.pem"))
+            .certificate(Paths.get("cert-classic.pem"))
+            .build();
+
         List<Service> services = new ArrayList<>();
-        services.add(new roboath.service.Service());
+        services.add(new roboath.service.Service(config));
         ServiceManager sm = new ServiceManager(services);
         sm.addListener(new ServiceManager.Listener() {
             @Override

@@ -13,6 +13,7 @@ dependencies {
     compile 'org.projectlombok:lombok:1.16.4'
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile 'com.lochbridge.oath:oath-otp:0.0.1-SNAPSHOT'
+    compile 'org.bouncycastle:bcprov-jdk15on:1.52'
 
     // compile-time so that we can install SLF4JBridgeHandler
     compile 'org.slf4j:jul-to-slf4j:1.7.12'

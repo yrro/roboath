@@ -6,29 +6,40 @@ import com.lochbridge.oath.otp.HOTPValidationResult;
 import com.lochbridge.oath.otp.HOTPValidator;
 import com.lochbridge.oath.otp.TOTP;
 import lombok.extern.slf4j.Slf4j;
+import roboath.Config;
 import roboath.service.protocol.Protocol;
+import roboath.service.tls.ServerSocketFactoryFactory;
 
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocket;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.concurrent.*;
 
 @Slf4j
 public class Service extends AbstractExecutionThreadService {
-    final static int PORT = 57653;
     final static int CONCURRENT_CLIENT_LIMIT = 10;
     final static int SHUTDOWN_TIMEOUT_SECS = 5;
 
-    private ServerSocket serverSocket;
+    private final Config config;
+
+    private SSLServerSocket serverSocket;
     private ConcurrentMap<String, Record> data;
     private ExecutorService executor;
 
+    public Service(Config config) {
+        this.config = config;
+    }
+
     @Override
     protected void startUp() throws Exception {
-        serverSocket = new ServerSocket(PORT);
+        ServerSocketFactory ssf = ServerSocketFactoryFactory.getSocketFactory(config.getCertificate(), config.getPrivateKey());
+        serverSocket = (SSLServerSocket) ssf.createServerSocket();
         serverSocket.setReuseAddress(true);
+        serverSocket.bind(config.getBindAddress());
 
         data = new ConcurrentHashMap<>();
+        data.put("sam", Record.builder().mode("HOTP").key(new byte[20]).movingFactor(200L).build());
 
         executor = MoreExecutors.getExitingExecutorService(
             (ThreadPoolExecutor) Executors.newFixedThreadPool(CONCURRENT_CLIENT_LIMIT),
