@@ -45,6 +45,11 @@ class Protocol implements Runnable {
         } catch (IOException e) {
             log.warn("IO error", e);
         } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                log.warn("Unable to close Socket", e);
+            }
             log.debug("connection closed; with successes={}, failures={}, errors={}", successCount, failureCount, errorCount);
             MDC.remove("client");
             MDC.remove("tlsProtocol");

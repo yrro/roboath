@@ -43,12 +43,11 @@ public class Service extends AbstractExecutionThreadService {
     }
 
     @Override
-    protected void run() throws Exception {
+    protected void run() throws IOException {
         for (;;) {
             try {
                 executor.execute(new Protocol(oathService, serverSocket.accept()));
             } catch (SocketException e) {
-                log.debug("Terminating due to SocketException", e);
                 return;
             }
         }
