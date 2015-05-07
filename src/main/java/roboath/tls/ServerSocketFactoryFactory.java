@@ -1,4 +1,4 @@
-package roboath.service.tls;
+package roboath.tls;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
