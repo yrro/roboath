@@ -33,7 +33,7 @@ targetCompatibility = '1.8'
 version = '0.1'
 
 task wrapper(type:Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '2.4'
 }
 
 task fatCapsule(type:FatCapsule) {
