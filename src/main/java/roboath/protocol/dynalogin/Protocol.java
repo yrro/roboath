@@ -1,4 +1,4 @@
-package roboath.service.protocol;
+package roboath.protocol.dynalogin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;

@@ -7,7 +7,7 @@ import com.lochbridge.oath.otp.HOTPValidator;
 import com.lochbridge.oath.otp.TOTP;
 import lombok.extern.slf4j.Slf4j;
 import roboath.Config;
-import roboath.service.protocol.Protocol;
+import roboath.protocol.dynalogin.Protocol;
 import roboath.service.tls.ServerSocketFactoryFactory;
 
 import javax.net.ServerSocketFactory;

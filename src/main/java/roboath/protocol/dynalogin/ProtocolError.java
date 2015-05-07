@@ -1,4 +1,4 @@
-package roboath.service.protocol;
+package roboath.protocol.dynalogin;
 
 class ProtocolError extends Exception implements WithProtocolMessage {
     private final Message protocolMessage;
