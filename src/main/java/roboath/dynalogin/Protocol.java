@@ -60,7 +60,7 @@ class Protocol implements Runnable {
                     if (args.length == 0)
                         throw new ProtocolError(Message.SYNTAX_ERROR, "Insufficient arguments");
 
-                    if (dispatch(in, out, args))
+                    if (handlerFor(args[0]).handle(in, out, args))
                         return;
                 } catch (ProtocolError e) {
                     errorCount++;
@@ -79,17 +79,20 @@ class Protocol implements Runnable {
         }
     }
 
-    private boolean dispatch(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException {
-        switch (args[0]) {
+    private Handler handlerFor(String command) throws ProtocolError {
+        switch(command) {
         case "UDATA":
-            return udata(in, out, args);
-
+            return this::udata;
         case "QUIT":
-            return quit(in, out, args);
-
+            return this::quit;
         default:
             throw new ProtocolError(Message.UNKNOWN_COMMAND);
         }
+    }
+
+    @FunctionalInterface
+    private interface Handler {
+        boolean handle(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException;
     }
 
     private boolean quit(ProtocolReader in, ProtocolWriter out, String[] args) throws IOException {
