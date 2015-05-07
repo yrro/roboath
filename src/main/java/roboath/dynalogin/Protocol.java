@@ -6,6 +6,7 @@ import org.slf4j.MDC;
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 
@@ -80,7 +81,7 @@ class Protocol implements Runnable {
     }
 
     private Handler handlerFor(String command) throws ProtocolError {
-        switch(command) {
+        switch(command.toUpperCase(Locale.ROOT)) {
         case "UDATA":
             return this::udata;
         case "QUIT":
