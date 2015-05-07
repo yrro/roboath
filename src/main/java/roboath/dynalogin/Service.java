@@ -34,6 +34,7 @@ public class Service extends AbstractExecutionThreadService {
         serverSocket = (SSLServerSocket) ssf.createServerSocket();
         serverSocket.setReuseAddress(true);
         serverSocket.bind(config.getBindAddress());
+        log.info("Listening on {}", serverSocket.getLocalSocketAddress());
 
         executor = MoreExecutors.getExitingExecutorService(
             (ThreadPoolExecutor) Executors.newFixedThreadPool(CONCURRENT_CLIENT_LIMIT),
@@ -43,7 +44,6 @@ public class Service extends AbstractExecutionThreadService {
 
     @Override
     protected void run() throws Exception {
-        log.info("Listening on {}", serverSocket.getLocalSocketAddress());
         for (;;) {
             try {
                 executor.execute(new Protocol(oathService, serverSocket.accept()));
@@ -61,10 +61,5 @@ public class Service extends AbstractExecutionThreadService {
         } catch (IOException e) {
             throw new RuntimeException("Unable to close ServerSocket", e);
         }
-    }
-
-    @Override
-    protected void shutDown() throws Exception {
-        executor.shutdown();
     }
 }
