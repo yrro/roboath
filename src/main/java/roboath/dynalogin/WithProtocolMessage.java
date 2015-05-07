@@ -1,4 +1,4 @@
-package roboath.protocol.dynalogin;
+package roboath.dynalogin;
 
 interface WithProtocolMessage {
     Message getProtocolMessage();

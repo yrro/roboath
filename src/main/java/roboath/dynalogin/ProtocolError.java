@@ -1,14 +1,14 @@
-package roboath.protocol.dynalogin;
+package roboath.dynalogin;
 
-class FatalProtocolError extends Exception implements WithProtocolMessage {
+class ProtocolError extends Exception implements WithProtocolMessage {
     private final Message protocolMessage;
 
-    public FatalProtocolError(Message protocolMessage, String message) {
+    public ProtocolError(Message protocolMessage, String message) {
         super(message);
         this.protocolMessage = protocolMessage;
     }
 
-    public FatalProtocolError(Message protocolMessage) {
+    public ProtocolError(Message protocolMessage) {
         this(protocolMessage, protocolMessage.getDescription());
     }
 

@@ -1,8 +1,7 @@
-package roboath.protocol.dynalogin;
+package roboath.dynalogin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import roboath.service.Service;
 
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
@@ -11,19 +10,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 
 @Slf4j
-public class Protocol implements Runnable {
+class Protocol implements Runnable {
     private static final int READ_TIMEOUT_SECS = 10;
     private static final int ERROR_COUNT_THRESHOLD = 8;
 
-    private final Service service;
+    private final roboath.oath.Service oathService;
     private final Socket socket;
 
     private int errorCount = 0;
     private int successCount = 0;
     private int failureCount = 0;
 
-    public Protocol(Service service, Socket socket) {
-        this.service = service;
+    public Protocol(roboath.oath.Service service, Socket socket) {
+        this.oathService = service;
         this.socket = socket;
     }
 
@@ -128,9 +127,9 @@ public class Protocol implements Runnable {
     private BiPredicate<String, String> validatorFor(String name) throws ProtocolError {
         switch (name) {
         case "HOTP":
-            return service::validateHOTP;
+            return oathService::validateHOTP;
         case "TOTP":
-            return service::validateTOTP;
+            return oathService::validateTOTP;
         default:
             throw new ProtocolError(Message.SYNTAX_ERROR, "Mode not recognized");
         }

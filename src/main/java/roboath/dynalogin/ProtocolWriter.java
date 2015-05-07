@@ -1,4 +1,4 @@
-package roboath.protocol.dynalogin;
+package roboath.dynalogin;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,13 +1,9 @@
-package roboath.service;
+package roboath.dynalogin;
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.lochbridge.oath.otp.HOTPValidationResult;
-import com.lochbridge.oath.otp.HOTPValidator;
-import com.lochbridge.oath.otp.TOTP;
 import lombok.extern.slf4j.Slf4j;
 import roboath.Config;
-import roboath.protocol.dynalogin.Protocol;
 import roboath.tls.ServerSocketFactoryFactory;
 
 import javax.net.ServerSocketFactory;
@@ -22,13 +18,14 @@ public class Service extends AbstractExecutionThreadService {
     final static int SHUTDOWN_TIMEOUT_SECS = 5;
 
     private final Config config;
+    private final roboath.oath.Service oathService;
 
     private SSLServerSocket serverSocket;
-    private ConcurrentMap<String, Record> data;
     private ExecutorService executor;
 
-    public Service(Config config) {
+    public Service(Config config, roboath.oath.Service oathService) {
         this.config = config;
+        this.oathService = oathService;
     }
 
     @Override
@@ -37,9 +34,6 @@ public class Service extends AbstractExecutionThreadService {
         serverSocket = (SSLServerSocket) ssf.createServerSocket();
         serverSocket.setReuseAddress(true);
         serverSocket.bind(config.getBindAddress());
-
-        data = new ConcurrentHashMap<>();
-        data.put("sam", Record.builder().mode("HOTP").key(new byte[20]).movingFactor(200L).build());
 
         executor = MoreExecutors.getExitingExecutorService(
             (ThreadPoolExecutor) Executors.newFixedThreadPool(CONCURRENT_CLIENT_LIMIT),
@@ -52,7 +46,7 @@ public class Service extends AbstractExecutionThreadService {
         log.info("Listening on {}", serverSocket.getLocalSocketAddress());
         for (;;) {
             try {
-                executor.execute(new Protocol(this, serverSocket.accept()));
+                executor.execute(new Protocol(oathService, serverSocket.accept()));
             } catch (SocketException e) {
                 log.debug("Terminating due to SocketException", e);
                 return;
@@ -72,34 +66,5 @@ public class Service extends AbstractExecutionThreadService {
     @Override
     protected void shutDown() throws Exception {
         executor.shutdown();
-    }
-
-    public boolean validateHOTP(String user, String authcode) {
-        Record r = data.get(user);
-        if (r == null) {
-            log.debug("User not found");
-            return false;
-        }
-
-        HOTPValidationResult res = HOTPValidator.lookAheadWindow(8)
-            .validate(r.getKey(), r.getMovingFactor().intValue(), authcode.length(), authcode);
-
-        data.put(user, r.withMovingFactor(res.getNewMovingFactor()));
-        return res.isValid();
-    }
-
-    public boolean validateTOTP(String user, String authcode) {
-        Record r = data.get(user);
-        if (r == null) {
-            log.debug("User not found");
-            return false;
-        }
-
-        TOTP res = TOTP.key(r.getKey())
-            .timeStep(TimeUnit.SECONDS.toMillis(30))
-            .digits(authcode.length())
-            .hmacSha1()
-            .build();
-        return res.value().equals(authcode);
     }
 }

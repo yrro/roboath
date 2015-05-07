@@ -7,6 +7,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -23,9 +24,10 @@ public class Roboath {
             .certificate(Paths.get("cert-classic.pem"))
             .build();
 
-        List<Service> services = new ArrayList<>();
-        services.add(new roboath.service.Service(config));
-        ServiceManager sm = new ServiceManager(services);
+        roboath.oath.Service oathService = new roboath.oath.Service(config);
+        roboath.dynalogin.Service dynaloginService = new roboath.dynalogin.Service(config, oathService);
+
+        ServiceManager sm = new ServiceManager(Arrays.asList(oathService, dynaloginService));
         sm.addListener(new ServiceManager.Listener() {
             @Override
             public void failure(Service service) {

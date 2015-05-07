@@ -1,4 +1,4 @@
-package roboath.service;
+package roboath.oath;
 
 import lombok.Builder;
 import lombok.NonNull;
