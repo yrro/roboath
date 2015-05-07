@@ -62,4 +62,9 @@ public class Service extends AbstractExecutionThreadService {
             throw new RuntimeException("Unable to close ServerSocket", e);
         }
     }
+
+    @Override
+    protected String serviceName() {
+        return "dynalogin";
+    }
 }

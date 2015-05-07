@@ -32,6 +32,11 @@ public class Service extends AbstractIdleService {
         // wait for any write requests to terminate
     }
 
+    @Override
+    protected String serviceName() {
+        return "oath";
+    }
+
     public boolean validateHOTP(String user, String authcode) {
         Record r = data.get(user);
         if (r == null) {
