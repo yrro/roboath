@@ -30,8 +30,10 @@ class Protocol implements Runnable {
     @Override
     public void run() {
         MDC.put("client", String.valueOf(socket.getRemoteSocketAddress()));
-        MDC.put("tlsProtocol", ((SSLSocket)socket).getSession().getProtocol());
-        MDC.put("tlsCipher", ((SSLSocket)socket).getSession().getCipherSuite());
+        if (socket instanceof SSLSocket) {
+            MDC.put("tlsProtocol", ((SSLSocket) socket).getSession().getProtocol());
+            MDC.put("tlsCipher", ((SSLSocket) socket).getSession().getCipherSuite());
+        }
         log.debug("accepting connection");
         try (
             ProtocolReader in = new ProtocolReader(socket.getInputStream());
