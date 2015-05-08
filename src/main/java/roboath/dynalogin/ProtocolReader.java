@@ -2,7 +2,6 @@ package roboath.dynalogin;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
@@ -18,7 +17,7 @@ class ProtocolReader implements AutoCloseable {
     private final PushbackInputStream in;
 
     public ProtocolReader(InputStream in) throws IOException {
-        this.in = new PushbackInputStream(new BufferedInputStream(in));
+        this.in = new PushbackInputStream(in);
     }
 
     /**
