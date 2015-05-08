@@ -4,9 +4,10 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import roboath.Config;
-import roboath.tls.ServerSocketFactoryFactory;
+import roboath.tls.SSLContextFactory;
 
 import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import java.io.IOException;
 import java.net.SocketException;
@@ -30,7 +31,8 @@ public class Service extends AbstractExecutionThreadService {
 
     @Override
     protected void startUp() throws Exception {
-        ServerSocketFactory ssf = ServerSocketFactoryFactory.getSocketFactory(config.getCertificate(), config.getPrivateKey());
+        SSLContext ctx = new SSLContextFactory().getSSLContext(config.getCertificate(), config.getPrivateKey());
+        ServerSocketFactory ssf = ctx.getServerSocketFactory();
         serverSocket = (SSLServerSocket) ssf.createServerSocket();
         serverSocket.setReuseAddress(true);
         serverSocket.bind(config.getBindAddress());
