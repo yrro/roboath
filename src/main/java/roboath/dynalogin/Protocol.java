@@ -45,8 +45,8 @@ class Protocol implements Runnable {
             // XXX doesn't help with write timeouts. Some kind of thread timer dance necessary.
 
             runConversation(in, out);
-        } catch (IOException e) {
-            log.warn("IO error", e);
+        } catch (Exception  e) {
+            log.warn("Unexpected error", e);
         } finally {
             try {
                 socket.close();
