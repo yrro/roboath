@@ -21,6 +21,7 @@ class Protocol implements Runnable {
     private int errorCount = 0;
     private int successCount = 0;
     private int failureCount = 0;
+    private boolean running = true;
 
     public Protocol(roboath.oath.Service service, Socket socket) {
         this.oathService = service;
@@ -63,13 +64,12 @@ class Protocol implements Runnable {
         try {
             out.write(Message.GREETING);
             String[] args;
-            while ((args = in.readArgs()) != null) {
+            while (running && (args = in.readArgs()) != null) {
                 try {
                     if (args.length == 0)
                         throw new ProtocolError(Message.SYNTAX_ERROR, "Insufficient arguments");
 
-                    if (handlerFor(args[0]).handle(in, out, args))
-                        return;
+                    handlerFor(args[0]).handle(in, out, args);
                 } catch (ProtocolError e) {
                     errorCount++;
                     if (errorCount < ERROR_COUNT_THRESHOLD) {
@@ -78,7 +78,7 @@ class Protocol implements Runnable {
                     } else {
                         out.write(e, true);
                         out.write(new FatalProtocolError(Message.TOO_MANY_ERRORS));
-                        return;
+                        running = false;
                     }
                 }
             }
@@ -100,15 +100,15 @@ class Protocol implements Runnable {
 
     @FunctionalInterface
     private interface Handler {
-        boolean handle(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException;
+        void handle(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException;
     }
 
-    private boolean quit(ProtocolReader in, ProtocolWriter out, String[] args) throws IOException {
+    private void quit(ProtocolReader in, ProtocolWriter out, String[] args) throws IOException {
         out.write(Message.GOODBYE);
-        return true;
+        running = false;
     }
 
-    private boolean udata(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException {
+    private void udata(ProtocolReader in, ProtocolWriter out, String[] args) throws ProtocolError, IOException {
         if (args.length != 4)
             throw new ProtocolError(Message.SYNTAX_ERROR, "Expected 4 words");
         MDC.put("mode", args[1]);
@@ -132,7 +132,6 @@ class Protocol implements Runnable {
             MDC.remove("mode");
             MDC.remove("user");
         }
-        return false;
     }
 
     private BiPredicate<String, String> validatorFor(String name) throws ProtocolError {
