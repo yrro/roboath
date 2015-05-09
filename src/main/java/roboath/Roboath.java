@@ -1,5 +1,6 @@
 package roboath;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class Roboath {
@@ -24,8 +29,13 @@ public class Roboath {
             .certificate(Paths.get("cert-classic.pem"))
             .build();
 
+        Executor executor = MoreExecutors.getExitingExecutorService(
+            (ThreadPoolExecutor) Executors.newFixedThreadPool(config.getConcurrentClientLimit()),
+            config.getShutdownTimeoutSec(), TimeUnit.SECONDS
+        );
+
         roboath.oath.Service oathService = new roboath.oath.Service(config);
-        roboath.dynalogin.Service dynaloginService = new roboath.dynalogin.Service(config, oathService);
+        roboath.dynalogin.Service dynaloginService = new roboath.dynalogin.Service(config, oathService, executor);
 
         ServiceManager sm = new ServiceManager(Arrays.asList(oathService, dynaloginService));
         sm.addListener(new ServiceManager.Listener() {

@@ -12,12 +12,16 @@ import java.nio.file.Path;
 @Builder
 @Slf4j
 public class Config {
+    int concurrentClientLimit;
+    int shutdownTimeoutSec;
     @NonNull Path privateKey;
     @NonNull Path certificate;
     @NonNull InetSocketAddress bindAddress;
 
     static class ConfigBuilder {
         ConfigBuilder() {
+            concurrentClientLimit(10);
+            shutdownTimeoutSec(5);
             bindAddress(new InetSocketAddress(57653));
         }
     }

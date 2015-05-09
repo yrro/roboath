@@ -1,7 +1,6 @@
 package roboath.dynalogin;
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import roboath.Config;
 import roboath.tls.SSLContextFactory;
@@ -11,22 +10,20 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
 
 @Slf4j
 public class Service extends AbstractExecutionThreadService {
-    final static int CONCURRENT_CLIENT_LIMIT = 10;
-    final static int SHUTDOWN_TIMEOUT_SECS = 5;
-
     private final Config config;
     private final roboath.oath.Service oathService;
+    private final Executor executor;
 
     private SSLServerSocket serverSocket;
-    private ExecutorService executor;
 
-    public Service(Config config, roboath.oath.Service oathService) {
+    public Service(Config config, roboath.oath.Service oathService, Executor executor) {
         this.config = config;
         this.oathService = oathService;
+        this.executor = executor;
     }
 
     @Override
@@ -35,13 +32,9 @@ public class Service extends AbstractExecutionThreadService {
         ServerSocketFactory ssf = ctx.getServerSocketFactory();
         serverSocket = (SSLServerSocket) ssf.createServerSocket();
         serverSocket.setReuseAddress(true);
-        serverSocket.bind(config.getBindAddress());
-        log.info("Listening on {}", serverSocket.getLocalSocketAddress());
 
-        executor = MoreExecutors.getExitingExecutorService(
-            (ThreadPoolExecutor) Executors.newFixedThreadPool(CONCURRENT_CLIENT_LIMIT),
-            SHUTDOWN_TIMEOUT_SECS, TimeUnit.SECONDS
-        );
+        serverSocket.bind(config.getBindAddress());
+        log.info("{} listening on {}", serviceName(), serverSocket.getLocalSocketAddress());
     }
 
     @Override
