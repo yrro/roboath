@@ -1,6 +1,5 @@
 package roboath.tls;
 
-import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import java.io.BufferedInputStream;

@@ -2,7 +2,6 @@ package roboath.dynalogin;
 
 import lombok.Getter;
 
-@Getter
 enum Message {
     GREETING(220, "Ready"),
     GOODBYE(221, "See ya starside"),
