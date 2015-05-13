@@ -1,10 +1,10 @@
-package roboath.weblogin;
+package roboath.weblogin.packet;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class PacketReader implements AutoCloseable {
+public class PacketReader implements AutoCloseable {
     private final DataInputStream in;
 
     public PacketReader(InputStream in) {

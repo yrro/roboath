@@ -3,12 +3,16 @@ package roboath.weblogin;
 import lombok.extern.slf4j.Slf4j;
 import org.ietf.jgss.*;
 import org.slf4j.MDC;
+import roboath.weblogin.message.Message;
+import roboath.weblogin.packet.Packet;
+import roboath.weblogin.packet.PacketReader;
+import roboath.weblogin.packet.PacketWriter;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
-import static roboath.weblogin.Packet.Flags.*;
+import static roboath.weblogin.packet.Packet.Flags.*;
 
 @Slf4j
 class Protocol implements Runnable {
@@ -84,6 +88,12 @@ class Protocol implements Runnable {
                 } catch (Message.UnknownVersion e) {
                     log.info("Client used unknown protocol version", e);
                     writeMessage(out, new Message.Version());
+                    continue;
+                } catch (Message.BadCommand e) {
+                    writeMessage(out, Message.Error.ERROR_BAD_COMMAND);
+                    continue;
+                } catch (Message.UnknownType |Message.ServerOnly e) {
+                    writeMessage(out, Message.Error.ERROR_UNKNOWN_MESSAGE);
                     continue;
                 }
 
@@ -187,13 +197,13 @@ class Protocol implements Runnable {
         }
     }
 
-    private Message readMessage(PacketReader in) throws IOException, GSSException, Message.UnknownVersion {
+    private Message readMessage(PacketReader in) throws IOException, GSSException, Message.UnknownVersion, Message.UnknownType, Message.ServerOnly, Message.BadCommand {
         // After the security context has been established, the client and server exchange commands and responses as
         // described below. All commands are sent with flags TOKEN_DATA and TOKEN_PROTOCOL (0x44) and the data payload
         // of all packets is protected with gss_wrap. The conf_req_flag parameter of gss_wrap MUST be set to non-zero,
         // requesting both confidentiality and integrity services.
-
         Packet p = in.readPacket();
+
         if (!p.checkFlags(TOKEN_DATA.value | TOKEN_PROTOCOL.value)) {
             log.warn("Client sent data packet with invalid flags {}", p.formatFlags());
             running = false;
@@ -202,29 +212,20 @@ class Protocol implements Runnable {
 
         byte[] mBytes = ctx.unwrap(p.getPayload(), 0, p.getPayload().length, inMP);
         if (!inMP.getPrivacy()) {
-            log.warn("Client send data without confidentiality protection");
+            log.warn("Client sent data without confidentiality protection");
             running = false;
             return null;
         }
 
-        try {
-            return Message.parse(mBytes);
-        } catch (Message.UnknownMessage e) {
-            // ERROR_UNKNOWN_MESSAGE
-            log.info("Unknown message ", e);
-            return null;
-        } catch (Message.ServerOnly e) {
-            log.info("Server only message ", e);
-            // ERROR_UNEXPECTED_MESSAGE
-            return null;
-        } catch (Message.BadToken e) {
-            log.info("Bad token", e);
-            return null;
-        }
+        return Message.parse(mBytes);
     }
 
     private void writeMessage(PacketWriter out, Message message) throws GSSException, IOException {
         byte[] messageBytes = Message.encode(message);
+
+        if (messageBytes.length >= Packet.DATA_PAYLOAD_SIZE_LIMIT)
+            throw new IOException("Tried to wrap too much");
+
         out.writePacket(
             Packet.builder()
                 .flags(TOKEN_DATA.value | TOKEN_PROTOCOL.value)

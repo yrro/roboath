@@ -1,11 +1,11 @@
-package roboath.weblogin;
+package roboath.weblogin.packet;
 
 import lombok.Builder;
 import lombok.Value;
 
 @Value
 @Builder
-class Packet {
+public class Packet {
     // 1. Basic Packet Format
 
     // The remctl network protocol consists of data packets sent from a client to a server or a server to a client over
