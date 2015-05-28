@@ -17,8 +17,7 @@ public class SSLContextFactory {
 
     public SSLContext getSSLContext(Path certPath, Path keyPath) throws IOException, GeneralSecurityException {
         PrivateKey key;
-        try (BufferedReader in = Files.newBufferedReader(keyPath)) {
-            KeyReader r = new KeyReader(in);
+        try (KeyReader r = new KeyReader(Files.newInputStream(keyPath))) {
             key = KeyFactory.getInstance("RSA")
                 .generatePrivate(r.readKeySpec());
         }

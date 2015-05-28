@@ -4,29 +4,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.EOFException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.util.Base64;
 
 @Slf4j
-class KeyReader {
+class KeyReader implements AutoCloseable {
     private final Base64.Decoder b64d = Base64.getDecoder();
     private final StringBuilder sb = new StringBuilder();
 
-    private final BufferedReader in;
+    private final BufferedReader reader;
 
-    KeyReader(BufferedReader in) {
-        this.in = in;
+    KeyReader(InputStream in) {
+        this.reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     KeySpec readKeySpec() throws IOException {
         boolean inside = false;
-        for (String line = in.readLine(); line != null; line = in.readLine()) {
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
             switch (line) {
             case "-----BEGIN RSA PRIVATE KEY-----":
             case "-----BEGIN PRIVATE KEY-----":
@@ -68,5 +66,10 @@ class KeyReader {
 
     private KeySpec parsePKCS8(String s) {
         return new PKCS8EncodedKeySpec(b64d.decode(s));
+    }
+
+    @Override
+    public void close() throws IOException {
+        reader.close();
     }
 }
