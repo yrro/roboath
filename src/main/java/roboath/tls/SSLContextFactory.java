@@ -28,9 +28,7 @@ public class SSLContextFactory {
                 .generateCertificate(in);
         }
 
-        char[] password = new char[128/Character.SIZE];
-        for (int i=0; i < password.length; i++)
-            password[i] = (char)random.nextInt(Character.MAX_VALUE+1);
+        char[] password = randomPassword();
 
         KeyStore keystore = KeyStore.getInstance("JKS");
         keystore.load(null);
@@ -43,5 +41,12 @@ public class SSLContextFactory {
         SSLContext c = SSLContext.getInstance("TLSv1.2");
         c.init(kmf.getKeyManagers(), null, new SecureRandom());
         return c;
+    }
+
+    private char[] randomPassword() {
+        char[] password = new char[128/Character.SIZE];
+        for (int i=0; i < password.length; i++)
+            password[i] = (char)random.nextInt(Character.MAX_VALUE+1);
+        return password;
     }
 }
